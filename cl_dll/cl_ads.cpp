@@ -1,12 +1,27 @@
 // ===================================================
+// REQUIRED HEADERS (FIXES ALL YOUR ERRORS)
+// ===================================================
+#include "extdll.h"
+#include "util.h"
+#include "cbase.h"
+#include "player.h"
+#include "weapons.h"
+#include "weaponids.h"
+#include "pm_shared.h"
+#include "usercmd.h"
+#include "mathlib.h"
+#include "cdll_int.h"
+
+#include <cstdlib>
+
+// ===================================================
 // GLOBAL STATE
 // ===================================================
 bool  g_bIronsight = false;
-float g_flADSProgress = 0;
+float g_flADSProgress = 0.0f;
 int   g_iActiveWeapon = 0;
 
-Vector g_vecRecoil;
-
+Vector g_vecRecoil(0, 0, 0);
 
 // ===================================================
 // WEAPON STATE
@@ -20,7 +35,6 @@ int GetActiveWeaponID()
 {
     return g_iActiveWeapon;
 }
-
 
 // ===================================================
 // ADS WEAPONS ONLY
@@ -51,43 +65,43 @@ bool UsesADS(int weaponid)
     return false;
 }
 
-
 // ===================================================
-// INPUT (CL_CREATEMOVE - CLIENT SIDE)
+// INPUT (CLIENT MOVE)
 // ===================================================
-void CL_CreateMove(UserCmd *cmd)
+void CL_CreateMove(usercmd_t *cmd)
 {
+    if (!cmd) return;
+
     g_bIronsight = (cmd->buttons & IN_ATTACK2);
 
     if (cmd->buttons & IN_ATTACK)
     {
-        g_vecRecoil.x += 2;
-        g_vecRecoil.y += (rand() % 2 - 1);
+        g_vecRecoil.x += 2.0f;
+        g_vecRecoil.y += (rand() % 3 - 1);
     }
 }
 
-
 // ===================================================
-// RECOIL DECAY (SMOOTH)
+// RECOIL DECAY
 // ===================================================
 void UpdateRecoil()
 {
-    g_vecRecoil.x = Lerp(g_vecRecoil.x, 0, 0.15f);
-    g_vecRecoil.y = Lerp(g_vecRecoil.y, 0, 0.15f);
+    float t = 0.15f;
+
+    g_vecRecoil.x = g_vecRecoil.x + (0.0f - g_vecRecoil.x) * t;
+    g_vecRecoil.y = g_vecRecoil.y + (0.0f - g_vecRecoil.y) * t;
 }
 
-
 // ===================================================
-// HIPFIRE (CENTER)
+// HIP FIRE
 // ===================================================
 Vector GetHipfire()
 {
     return Vector(0, 0, 0);
 }
 
-
 // ===================================================
-// YOUR MDL = ADS POSITIONS
+// ADS POSITIONS
 // ===================================================
 Vector GetADSPosition(int weaponid)
 {
@@ -116,7 +130,6 @@ Vector GetADSPosition(int weaponid)
     }
 }
 
-
 // ===================================================
 // LERP
 // ===================================================
@@ -125,9 +138,8 @@ Vector Lerp(Vector a, Vector b, float t)
     return a + (b - a) * t;
 }
 
-
 // ===================================================
-// VIEWMODEL FINAL (ADS + RECOIL)
+// VIEWMODEL FINAL
 // ===================================================
 Vector V_CalcViewModel()
 {
@@ -136,18 +148,17 @@ Vector V_CalcViewModel()
     Vector hip = GetHipfire();
     Vector ads = GetADSPosition(weaponid);
 
-    Vector recoilFix = g_vecRecoil * -1;
+    Vector recoilFix = g_vecRecoil * -1.0f;
 
     Vector result = Lerp(hip, ads, g_flADSProgress);
 
     return result + recoilFix;
 }
 
-
 // ===================================================
-// FRAME UPDATE (CLIENT LOOP)
+// FRAME UPDATE
 // ===================================================
-void FrameUpdate(UserCmd *cmd)
+void FrameUpdate(usercmd_t *cmd)
 {
     UpdateRecoil();
 
@@ -158,6 +169,6 @@ void FrameUpdate(UserCmd *cmd)
     else
         g_flADSProgress -= speed;
 
-    if (g_flADSProgress > 1) g_flADSProgress = 1;
-    if (g_flADSProgress < 0) g_flADSProgress = 0;
+    if (g_flADSProgress > 1.0f) g_flADSProgress = 1.0f;
+    if (g_flADSProgress < 0.0f) g_flADSProgress = 0.0f;
 }
