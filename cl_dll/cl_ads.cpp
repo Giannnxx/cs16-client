@@ -7,8 +7,10 @@
 #include "player.h"
 #include "weapons.h"
 #include "weaponids.h"
-#include "pm_shared.h"
+#include "const.h"
+#include "pm_defs.h"
 #include "usercmd.h"
+#include "pm_movevars.h"
 #include "mathlib.h"
 #include "cdll_int.h"
 
